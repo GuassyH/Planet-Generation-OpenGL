@@ -1,0 +1,88 @@
+
+
+
+struct Vertex {
+	vec4 position;
+	vec4 normal;
+	vec4 color;
+	vec4 texUV;
+};
+
+layout(std430, binding = 0) buffer Vertices {
+    Vertex vertices[];
+};
+
+layout(std430, binding = 1) buffer CraterPositions{
+    vec4 craterPositions[];
+};
+
+
+// exponential
+float smin( float a, float b, float k )
+{
+    k *= 1.0;
+    float r = exp2(-a/k) + exp2(-b/k);
+    return -k*log2(r);
+}
+
+
+// Crater
+uniform int numCraters;
+uniform float craterSize;
+uniform float craterWidth;
+uniform float craterSteepness;
+uniform float craterDepth;
+
+// Crater Rim
+uniform float rimSteepness;
+uniform float rimWidth;
+uniform float smoothingK;
+uniform int rimExp;
+
+float CraterHeight(float x) {
+	float result = 0.0f;
+	
+
+	float craterConcave = (craterSteepness * x * x) - (craterSteepness * craterWidth * craterWidth);
+	craterConcave = smin(craterConcave, craterDepth, -smoothingK);
+
+	float rim = (rimSteepness * pow(abs(x), -1.0f)) - rimSteepness * pow((rimWidth + craterWidth), -1.0f);
+	rim = smin(rim, 0.0f, -smoothingK);
+
+
+	result = smin(craterConcave, rim, smoothingK);
+	return result;
+}
+
+
+
+uniform float radius;
+uniform int numVerts;
+uniform int resolution;
+
+
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    uint idy = gl_GlobalInvocationID.y;
+    uint idz = gl_GlobalInvocationID.z;
+
+    uint currentVert = (idx * (resolution + 1) + idy) + ( ((resolution + 1) * (resolution + 1)) * idz);
+  
+    if (currentVert >= numVerts) { return; }
+
+	float MaxCraterDistance = craterWidth * 2;
+
+	Vertex vert = vertices[currentVert];
+	vert.position = vertices[currentVert].normal * radius;
+
+
+	for(int i = 0; i < numCraters; i++){
+		float dist = distance(vec3(vert.position), vec3(craterPositions[i]) * radius);
+		if(dist < MaxCraterDistance){
+			vert.position += vert.normal * CraterHeight(dist);
+		}
+	}
+
+	vertices[currentVert] = vert;
+
+}

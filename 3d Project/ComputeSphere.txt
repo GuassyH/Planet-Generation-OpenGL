@@ -1,0 +1,70 @@
+
+
+
+
+
+struct Vertex {
+	vec4 position;
+	vec4 normal;
+	vec4 color;
+	vec4 texUV;
+};
+
+layout(std430, binding = 0) buffer Vertices {
+    Vertex vertices[];
+};
+
+uniform int resolution;
+uniform int numVerts;
+uniform float radius;
+uniform float tile;
+
+
+mat4 rotationMatrix;
+uniform mat4 rotationMat1;
+uniform mat4 rotationMat2;
+uniform mat4 rotationMat3;
+uniform mat4 rotationMat4;
+uniform mat4 rotationMat5;
+uniform mat4 rotationMat6;
+
+
+void main(){
+    uint idx = gl_GlobalInvocationID.x;
+    uint idy = gl_GlobalInvocationID.y;
+    uint idz = gl_GlobalInvocationID.z;
+
+    uint currentVert = (idx * (resolution + 1) + idy) + ( ((resolution + 1) * (resolution + 1)) * idz);
+  
+    if (currentVert >= numVerts) { return; }
+
+    // Calculate which face it is
+    int face;
+	if (currentVert <= ((resolution + 1) * (resolution + 1))) { face = 1; }
+	else if (currentVert <= 2 * ((resolution + 1) * (resolution + 1))) { face = 2; }
+	else if (currentVert <= 3 * ((resolution + 1) * (resolution + 1))) { face = 3; }
+	else if (currentVert <= 4 * ((resolution + 1) * (resolution + 1))) { face = 4; }
+	else if (currentVert <= 5 * ((resolution + 1) * (resolution + 1))) { face = 5; }
+	else { face = 6; }
+
+    if(face == 1){   rotationMatrix = rotationMat1;  }
+    if(face == 2){   rotationMatrix = rotationMat2;  }
+    if(face == 3){   rotationMatrix = rotationMat3;  }
+    if(face == 4){   rotationMatrix = rotationMat4;  }
+    if(face == 5){   rotationMatrix = rotationMat5;  }
+    if(face == 6){   rotationMatrix = rotationMat6;  }
+
+    vec3 centreOffset = vec3(-radius / 2.0f, -radius / 2.0f, radius / 2.0f);
+
+    vec3 tempPosRaw = vec3(float(idx * radius), float(idy * radius), 0) / float(resolution)+ centreOffset;
+    vec4 rotatedPos = rotationMatrix * vec4(tempPosRaw, 1.0f);
+    vec3 rotatedPos3D = vec3(rotatedPos);
+    vec3 rotatedPosNormal = normalize(rotatedPos3D);
+
+    vec2 texCoord = vec2(tempPosRaw * radius * tile) - (vec2(1.0f) / (2.0f * radius));
+
+    vertices[currentVert].position = vec4(rotatedPosNormal * radius, 1.0f);
+    vertices[currentVert].normal = vec4(rotatedPosNormal, 1.0f);
+    vertices[currentVert].color = vec4(1.0f);
+    vertices[currentVert].texUV = vec4(texCoord, 1.0f, 1.0f);
+}
