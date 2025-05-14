@@ -13,9 +13,6 @@ layout(std430, binding = 0) buffer Vertices {
 
 
 
-
-
-
 uniform int numVerts;
 uniform int resolution;
 
