@@ -14,7 +14,7 @@ SphereSide::SphereSide(unsigned int& resolution, float& radius, glm::mat4& rotat
 
     // runComputeShader(resolution, radius, tile, rotationMatrix, numVerts, verts);
 
-
+    
     for (unsigned int i = 0; i < (resolution * resolution) + resolution; i++) {
         // Bottom tri
         if ((i + 1) % (resolution + 1) != 0.0f) {
@@ -29,7 +29,7 @@ SphereSide::SphereSide(unsigned int& resolution, float& radius, glm::mat4& rotat
             inds.push_back(i + resolution);
         }
     }
-
+    
     SphereSide::indices = inds;
 }
 

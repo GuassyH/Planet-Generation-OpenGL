@@ -132,27 +132,22 @@ Sphere::Sphere(unsigned int resolution, float radius, float tile) {
     
     glm::mat4 rotationMatrix = glm::mat4(1.0f);
 
-    // sphereSides.emplace_back(resolution, radius, rotationMatrix, tile);
- 
     
     // Create 6 SphereSide instances (like the 6 sides of a cube sphere)
     for (unsigned int i = 0; i < 6; ++i) {
         glm::mat4 rotationMatrix = glm::mat4(1.0f);
         if (i < 4) {
-            // rotationMatrix = glm::rotate(glm::radians(i * 90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
             sphereSides.emplace_back(resolution, radius, rotationMatrix, tile);
         }
         else if (i == 4) {
-            // rotationMatrix = glm::rotate(glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             sphereSides.emplace_back(resolution, radius, rotationMatrix, tile);
         }
         else if (i == 5) {
-            // rotationMatrix = glm::rotate(glm::radians(270.0f), glm::vec3(1.0f, 0.0f, 0.0f));
             sphereSides.emplace_back(resolution, radius, rotationMatrix, tile);
         }
 
     }
-    
+
     
     
     unsigned int numVerts = ((resolution + 1) * (resolution + 1)) * 6;
@@ -183,6 +178,7 @@ Sphere::Sphere(unsigned int resolution, float radius, float tile) {
     for (unsigned int i = 0; i < 6; ++i) {
         std::vector<unsigned int>().swap(sphereSides[i].indices);
     }
+
     std::vector<SphereSide>().swap(sphereSides);
 }
 

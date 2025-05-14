@@ -4,17 +4,18 @@
 #include "Mesh.h"
 #include "Sphere.h"
 #include <glm/gtc/random.hpp>
+#include "Atmosphere.h"
 
 class PlanetGenerator {
 public:
 	float frequency = 10.0f;
 	float amplitude = 10.0f;
 
-	unsigned int resolution = 50;
+	int resolution = 50;
 	float radius = 2.0f;
 	float tile = 1.0f;
 	// Crater
-	unsigned int numCraters = 0;
+	int numCraters = 0;
 	float craterWidth = 2.9f;
 	float craterSteepness = 1.2f;
 	float craterDepth = -1.0f;
@@ -30,7 +31,11 @@ public:
 
 	GLuint computePlanetProgram;
 
+	Atmosphere atmosphere;
+
 	std::vector<Vertex> vertices;
+	std::vector<ComputeVertex> baseComputeVerts;
+
 	std::vector<GLuint> indices;
 	std::vector<Texture> planetTex;
 	std::vector<glm::vec4> craterPositions;
@@ -38,7 +43,7 @@ public:
 	PlanetGenerator(Sphere& sphere, Mesh& mesh);
 	PlanetGenerator(unsigned int resolution, float radius, float tile, Mesh& mesh01);
 	void UpdateMesh();
-
+	void Draw(Shader& shader, Camera& camera);
 };
 
 #endif

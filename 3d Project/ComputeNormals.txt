@@ -83,6 +83,7 @@ void main() {
 	
 	vert.normal = vec4(normal, 1.0f);
 	vert.color = vert.normal;
+	
 	vertices[i] = vert;
 
 }
