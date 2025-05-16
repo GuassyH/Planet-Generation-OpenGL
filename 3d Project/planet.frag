@@ -46,7 +46,7 @@ vec4 pointLight(){
 vec4 directionalLight(){
 	
 	// easy to understand
-	vec3 lightDirection = normalize(lightPos);
+	vec3 lightDirection = (lightPos - crntPos);
 	
 	// diffuse lighting
 	lightDirection = normalize(lightDirection);
@@ -91,5 +91,7 @@ vec4 spotLight(){
 
 void main(){
 	// output final color
+	float steepness = clamp(dot(Normal, normalize(crntPos)), 0.0f, 1.0f); 
+	// fragColor = steepness * directionalLight();
 	fragColor = directionalLight();
 };

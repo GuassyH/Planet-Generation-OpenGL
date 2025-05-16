@@ -27,7 +27,7 @@ void Sphere::runComputeSphere(unsigned int& resolution, float& radius, float& ti
         "#version 460 core \n layout(local_size_x = " + std::to_string(layoutGroupX) + ", local_size_y = " + std::to_string(layoutGroupY) + ", local_size_z = " + std::to_string(layoutGroupZ) + ") in; ";
 
 
-    std::string computeShaderString = layoutStr + get_file_contents("ComputeSphere.comp");
+    std::string computeShaderString = layoutStr + "//" + get_file_contents("ComputeSphere.comp");
     const char* computeShaderSource = computeShaderString.c_str();
 
     GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);

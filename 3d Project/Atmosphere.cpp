@@ -75,10 +75,8 @@ Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), AtmosphereName(At
 
 	Atmosphere::atmosphereShader = Shader("Atmosphere.vert", "Atmosphere.frag");
 
-	
 	AtmosphereName = "Planet Atmosphere";
 	std::cout << AtmosphereName << std::endl;
-
 
 	GenerateBuffers();
 
@@ -112,9 +110,9 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 	// ================ //
 
 
-	float scatterR = glm::pow(400 / wavelengths.x, 4) * scatteringStrength;
-	float scatterG = glm::pow(400 / wavelengths.y, 4) * scatteringStrength;
-	float scatterB = glm::pow(400 / wavelengths.z, 4) * scatteringStrength;
+	float scatterR = glm::pow(scatteringCoefficient / wavelengths.x, 4) * scatteringStrength;
+	float scatterG = glm::pow(scatteringCoefficient / wavelengths.y, 4) * scatteringStrength;
+	float scatterB = glm::pow(scatteringCoefficient / wavelengths.z, 4) * scatteringStrength;
 
 
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "atmosphereCentre"), position.x, position.y, position.z);
@@ -124,19 +122,19 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "FOVdeg"), camera.FOVdeg);
 
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
-	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camUp"), camera.Up.x, camera.Up.y, camera.Up.z);
-	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camForward"), camera.Forward.x, camera.Forward.y, camera.Forward.z);
-	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camRight"), camera.Right.x, camera.Right.y, camera.Right.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camUp"), camera.LocalUp.x, camera.LocalUp.y, camera.LocalUp.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camForward"), camera.LocalForward.x, camera.LocalForward.y, camera.LocalForward.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camRight"), camera.LocalRight.x, camera.LocalRight.y, camera.LocalRight.z);
 	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "camFarPlane"), camera.farPlane);
 	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "camNearPlane"), camera.nearPlane);
 
 	// ATMOSPHERE SETTINGS
-	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "atmosphereRadius"), atmosphereRadius);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "atmosphereScale"), atmosphereScale);
 	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "planetRadius"), planetRadius);
-	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "densityFallOff"), densityFallOff);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "densityFalloff"), densityFalloff);
 
-	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "numInScatteringPoints"), numInScatteringPoints);
-	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "numOpticalDepthPoints"), numOpticalDepthPoints);
+	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "numInScatteringPoints"), inScatteringPoints);
+	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "numOpticalDepthPoints"), opticalDepthPoints);
 	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "intensity"), intensity);
 	// Color
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "scatteringCoefficients"), scatterR, scatterG, scatterB);
@@ -147,7 +145,7 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 
 
 	camera.Matrix(atmosphereShader, "camMatrix");
-
+	
 	glBindVertexArray(rectVAO);
 	glDisable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
@@ -158,13 +156,14 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 void Atmosphere::imgui_updates() {
 
 	if (ImGui::CollapsingHeader("Atmosphere")) {
-		ImGui::SliderFloat("A_Radius", &atmosphereRadius, 0.0f, 100.0f);
+		ImGui::SliderFloat("Atmosphere Scale", &atmosphereScale, 1.0f, 5.0f);
 		ImGui::Spacing();
-		ImGui::SliderFloat("DensityFallOff", &densityFallOff, -2.0f, 20.0f);
-		ImGui::SliderInt("numInScatteringPoints", &numInScatteringPoints, 1, 20);
-		ImGui::SliderInt("numOpticalDepthPoints", &numOpticalDepthPoints, 1, 20);
+		ImGui::SliderFloat("Density Falloff", &densityFalloff, -2.0f, 20.0f);
+		ImGui::SliderInt("numInScatteringPoints", &inScatteringPoints, 1, 20);
+		ImGui::SliderInt("numOpticalDepthPoints", &opticalDepthPoints, 1, 20);
 		ImGui::SliderFloat("intensity", &intensity, 0.0f, 2.0f);
 		ImGui::SliderFloat3("wavelengths", &wavelengths.x, 0.0f, 1000.0f);
+		ImGui::SliderFloat("scatteringCoefficient", &scatteringCoefficient, 0.0f, 700.0f);
 		ImGui::SliderFloat("scatteringStrength", &scatteringStrength, 0.0f, 10.0f);
 	}
 }

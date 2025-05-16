@@ -1,4 +1,4 @@
-
+#version 460 core
 
 struct Vertex {
 	vec4 position;

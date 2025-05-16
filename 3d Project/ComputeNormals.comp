@@ -1,4 +1,4 @@
-
+#version 460 core
 
 struct Vertex {
 	vec4 position;
@@ -82,7 +82,7 @@ void main() {
 	}
 	
 	vert.normal = vec4(normal, 1.0f);
-	vert.color = vec4(0.5f);
+	vert.color = vec4(0.5f, 0.5f, 0.5f, 1.0f);
 	
 	vertices[i] = vert;
 

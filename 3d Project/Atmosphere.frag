@@ -22,14 +22,15 @@ uniform float FOVdeg;
 
 
 // ATMOSPHERE SETTINGS
-uniform float planetRadius = 0.0f;
-uniform float atmosphereRadius = 0.0f;
-uniform double numParticles = 30;		/* times 10 to the power of 22 */
+uniform float planetRadius = 1.0;
+uniform float atmosphereScale = 1.25;
+float atmosphereRadius;
 
 // RENDERING SETTINGS
 uniform int numInScatteringPoints;
 uniform int numOpticalDepthPoints;
 uniform float intensity;
+uniform float densityFalloff;
 
 // COLOR
 uniform vec3 scatteringCoefficients;
@@ -59,13 +60,12 @@ vec2 raySphere (vec3 sphereCentre, float sphereRadius, vec3 rayOrigin, vec3 rayD
 
 
 
-uniform float densityFallOff;
 float densityAtPoint(vec3 samplePoint){
 	float heightAbove = distance(samplePoint, atmosphereCentre) - planetRadius;
 	float height01 = heightAbove / (atmosphereRadius - planetRadius);
-	height01 = clamp(height01, 0.0f, 1.0f);
+	height01 = clamp(height01, 0.0, 1.0);
 
-	float localDensity = exp(-height01 * densityFallOff) * (1 - height01);
+	float localDensity = exp(-height01 * densityFalloff) * (1 - height01);
 
 	return localDensity;
 }
@@ -96,7 +96,7 @@ vec3 calculateLight(vec3 rayOrigin, vec3 rayDir, float dstThrough, vec3 original
 	vec3 inScatteredLight;
 	
 	float stepSize = dstThrough / (numInScatteringPoints - 1);
-	float viewRayOpticalDepth = 0.0f;
+	float viewRayOpticalDepth = 0.0;
 
 	for(int i = 0; i < numInScatteringPoints; i++){
 		vec3 dirToSun = normalize(sunPos - inScatterPoint);
@@ -135,6 +135,7 @@ void main(){
 	vec3 rayDir = normalize(	camForward + rayCoord.x * aspect * scale * camRight + rayCoord.y * scale * camUp	);
 	vec3 rayOrigin = camPos;
 
+	atmosphereRadius = planetRadius * atmosphereScale;
 
 	vec2 intersect = raySphere(atmosphereCentre, atmosphereRadius, rayOrigin, rayDir); 
 	float dstTo = intersect.x;
@@ -143,25 +144,19 @@ void main(){
 	float depth;
 	depth = raySphere(atmosphereCentre, planetRadius, rayOrigin, rayDir).x - dstTo;
 	
-
 	
 	// DEPTH THING NEEDS TO BE ADDED
-	if(depth > 0.0f){
+	if(depth > 0.0){
 		dstThrough = min(dstThrough, depth);
 	}
 
-	if(dstThrough > 0.0f){
-		const float epsilon = 0.001f;
+
+	if(dstThrough > 0.0){
+		const float epsilon = 0.001;
 		vec3 pointInAtmosphere = rayOrigin + rayDir * (dstTo + epsilon);
 		vec3 light = calculateLight(pointInAtmosphere, rayDir, dstThrough - (epsilon * 2), vec3(fragColor));
 
-		fragColor += vec4(light, 1.0f);
+		fragColor += vec4(light, 1.0);
 	}
-
-
-
-
-	
-
 
 } 

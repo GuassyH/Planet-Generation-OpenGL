@@ -43,7 +43,8 @@ public:
 	PlanetGenerator(Sphere& sphere, Mesh& mesh);
 	PlanetGenerator(unsigned int resolution, float radius, float tile, Mesh& mesh01);
 	void UpdateMesh();
-	void Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos);
+	void Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos, glm::vec4 lightColor);
+	void CameraReOrient(Camera& camera, float& delta);
 };
 
 #endif

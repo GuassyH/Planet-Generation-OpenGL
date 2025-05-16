@@ -10,7 +10,6 @@ PlanetGenerator::PlanetGenerator(Sphere& sphere01, Mesh& mesh01) : sphere(sphere
 	sphere01.~Sphere();
 
 	atmosphere = Atmosphere();
-	atmosphere.atmosphereRadius = radius + 10.0f;
 
 	PlanetGenerator::UpdateMesh();
 }
@@ -24,7 +23,6 @@ PlanetGenerator::PlanetGenerator(unsigned int resolution, float radius, float ti
 	PlanetGenerator::planetTex = mesh01.textures;
 
 	atmosphere = Atmosphere();
-	atmosphere.atmosphereRadius = radius + 10.0f;
 
 	PlanetGenerator::UpdateMesh();
 }
@@ -58,8 +56,8 @@ void createComputeShader(unsigned int& numVerts, int& resolution, const char* Sh
 	std::string layoutStr = 
 	"#version 460 core \n layout(local_size_x = " + std::to_string(layoutGroupX) + ", local_size_y = " + std::to_string(layoutGroupY) + ", local_size_z = " + std::to_string(layoutGroupZ) + ") in; ";
 	
-
-	std::string computeShaderString = layoutStr + get_file_contents(ShaderName);
+	// comment out #version 460 core in the shader file which is used to stop syntax errors
+	std::string computeShaderString = layoutStr + "//" + get_file_contents(ShaderName);
 	const char* computeShaderSource = computeShaderString.c_str();
 
 	computeShader = glCreateShader(GL_COMPUTE_SHADER);
@@ -85,7 +83,6 @@ void createComputeShader(unsigned int& numVerts, int& resolution, const char* Sh
 
 
 }
-
 
 void runComputeShader(unsigned int& numVerts, int& resolution, GLuint& vertBuff, GLsizeiptr& vertBuffSize, std::vector<Vertex>& vertices, std::vector<ComputeVertex>& computeVerts) {
 
@@ -203,7 +200,7 @@ void PlanetGenerator::UpdateMesh() {
 	glDeleteBuffers(1, &vertBuff);
 	glDeleteBuffers(1, &craterBuff);
 	
-
+	
 
 	// RUN NORMAL CALCULATION
 	createComputeShader(numVerts, resolution, "ComputeNormals.comp");
@@ -238,12 +235,17 @@ void PlanetGenerator::UpdateMesh() {
 	std::vector<GLuint>().swap(indices);
 }
 
+void PlanetGenerator::CameraReOrient(Camera& camera, float& delta) {
+	glm::vec3 newUp;
+	newUp = camera.Position - mesh.position;
+
+	if (glm::distance(mesh.position, camera.Position) < radius * atmosphere.atmosphereScale) { camera.WorldUp = camera.WorldUp - (-newUp * delta * 0.25f); }
+	else { camera.WorldUp = glm::vec3(0.0f, 1.0f, 0.0f) - (camera.WorldUp * delta * 0.25f); }
+}
 
 
-
-void PlanetGenerator::Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos) {
+void PlanetGenerator::Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos, glm::vec4 lightColor) {
 	mesh.Draw(shader, camera);
-	
 	
 	atmosphere.Update(mesh.position, camera, width, height, radius, lightPos);
 }

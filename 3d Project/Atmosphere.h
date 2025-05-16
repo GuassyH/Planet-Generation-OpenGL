@@ -26,15 +26,16 @@ class Atmosphere {
 		int height;
 
 		// Atmoshpere Settings
-		float atmosphereRadius = 60.0f;
-		float densityFallOff = 5.0f;
+		float atmosphereScale = 1.2f;
+		float densityFalloff = 5.0f;
 
-		int numInScatteringPoints = 8;
-		int numOpticalDepthPoints = 3;
+		int inScatteringPoints = 10;
+		int opticalDepthPoints = 8;
 		float intensity = 1.0f;
 
 		// Colo
-		glm::vec3 wavelengths = glm::vec3(700.0f, 550.0f, 440.0f);
+		glm::vec3 wavelengths = glm::vec3(700.0f, 530.0f, 440.0f);
+		float scatteringCoefficient = 400.0f;
 		float scatteringStrength = 0.5f;
 
 		glm::mat4 matrix;
