@@ -13,27 +13,15 @@ float rectangleVertices[] = {
 
 };
 
-Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), AtmosphereName(AtmosphereName), rectVAO(rectVAO), rectVBO(rectVBO), FBO(FBO), RBO(RBO), frameBufferTexture(frameBufferTexture) {
-	// Create new Atmosphere Shader
 
-	Atmosphere::atmosphereShader = Shader("Atmosphere.vert", "Atmosphere.frag");
-
-	
-	AtmosphereName = "Planet Atmosphere";
-	std::cout << AtmosphereName << std::endl;
-
+void Atmosphere::GenerateBuffers() {
 
 	atmosphereShader.Activate();
 	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "screenTexture"), 0);
 
 
-	int height;
-	int width;
-	
+
 	glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
-
-
-
 
 
 
@@ -82,10 +70,29 @@ Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), AtmosphereName(At
 
 }
 
+Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), AtmosphereName(AtmosphereName), rectVAO(rectVAO), rectVBO(rectVBO), FBO(FBO), RBO(RBO), frameBufferTexture(frameBufferTexture) {
+	// Create new Atmosphere Shader
 
+	Atmosphere::atmosphereShader = Shader("Atmosphere.vert", "Atmosphere.frag");
 
-void Atmosphere::Update(glm::vec3 position) {
 	
+	AtmosphereName = "Planet Atmosphere";
+	std::cout << AtmosphereName << std::endl;
+
+
+	GenerateBuffers();
+
+}
+
+
+
+void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& height, float& planetRadius, glm::vec3& lightPos) {
+	
+	if (Atmosphere::width != width || Atmosphere::height != height) {
+		GenerateBuffers();
+	}
+
+
 	// Set all variables
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -97,12 +104,67 @@ void Atmosphere::Update(glm::vec3 position) {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	atmosphereShader.Activate();
-	glm::mat4 pos = glm::translate(glm::mat4(1.0f), position);
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereShader.ID, "model"), 1, GL_FALSE, glm::value_ptr(matrix));
-	glUniformMatrix4fv(glGetUniformLocation(atmosphereShader.ID, "position"), 1, GL_FALSE, glm::value_ptr(pos));
+
+	imgui_updates();
+
+
+
+	// ================ //
+
+
+	float scatterR = glm::pow(400 / wavelengths.x, 4) * scatteringStrength;
+	float scatterG = glm::pow(400 / wavelengths.y, 4) * scatteringStrength;
+	float scatterB = glm::pow(400 / wavelengths.z, 4) * scatteringStrength;
+
+
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "atmosphereCentre"), position.x, position.y, position.z);
+	glUniform2f(glGetUniformLocation(atmosphereShader.ID, "screenResolution"), float(width), float(height));
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "sunPos"), lightPos.x, lightPos.y, lightPos.z);
+
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "FOVdeg"), camera.FOVdeg);
+
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camUp"), camera.Up.x, camera.Up.y, camera.Up.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camForward"), camera.Forward.x, camera.Forward.y, camera.Forward.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camRight"), camera.Right.x, camera.Right.y, camera.Right.z);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "camFarPlane"), camera.farPlane);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "camNearPlane"), camera.nearPlane);
+
+	// ATMOSPHERE SETTINGS
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "atmosphereRadius"), atmosphereRadius);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "planetRadius"), planetRadius);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "densityFallOff"), densityFallOff);
+
+	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "numInScatteringPoints"), numInScatteringPoints);
+	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "numOpticalDepthPoints"), numOpticalDepthPoints);
+	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "intensity"), intensity);
+	// Color
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "scatteringCoefficients"), scatterR, scatterG, scatterB);
+
+
+	// ================ //
+
+
+
+	camera.Matrix(atmosphereShader, "camMatrix");
 
 	glBindVertexArray(rectVAO);
 	glDisable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+
+void Atmosphere::imgui_updates() {
+
+	if (ImGui::CollapsingHeader("Atmosphere")) {
+		ImGui::SliderFloat("A_Radius", &atmosphereRadius, 0.0f, 100.0f);
+		ImGui::Spacing();
+		ImGui::SliderFloat("DensityFallOff", &densityFallOff, -2.0f, 20.0f);
+		ImGui::SliderInt("numInScatteringPoints", &numInScatteringPoints, 1, 20);
+		ImGui::SliderInt("numOpticalDepthPoints", &numOpticalDepthPoints, 1, 20);
+		ImGui::SliderFloat("intensity", &intensity, 0.0f, 2.0f);
+		ImGui::SliderFloat3("wavelengths", &wavelengths.x, 0.0f, 1000.0f);
+		ImGui::SliderFloat("scatteringStrength", &scatteringStrength, 0.0f, 10.0f);
+	}
 }

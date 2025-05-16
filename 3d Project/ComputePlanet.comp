@@ -67,7 +67,7 @@ void main() {
 
     uint currentVert = (idx * (resolution + 1) + idy) + ( ((resolution + 1) * (resolution + 1)) * idz);
   
-    if (currentVert >= numVerts) { return; }
+    if (currentVert > numVerts) { return; }
 
 	float MaxCraterDistance = craterWidth * 2;
 

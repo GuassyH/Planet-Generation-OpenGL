@@ -125,9 +125,9 @@ int main(void) {
 	//		-	MOVING AND ASSIGNING MODELS		-		//
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
 
-	sphereMesh.position = glm::vec3(0.0f, 0.0f, 0.0f);
-	light.position = glm::vec3(0.0f, 0.0f, 100.0f);
-	light.scale = glm::vec3(10.0f);
+	sphereMesh.position = glm::vec3(0.0f, 0.0f, -30.0f);
+	light.position = glm::vec3(0.0f, 0.0f, 700.0f);
+	light.scale = glm::vec3(100.0f);
 
 	lightShader.Activate();
 	glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
@@ -183,19 +183,19 @@ int main(void) {
 		deltaTime = (crntTime - prevTime);
 		prevTime = crntTime;
 
-		velocity += glm::vec3(0.0f, gravity * deltaTime, 0.0f);
 
-		if (sphereMesh.position.y < -10.0f) {
+		velocity += glm::vec3(0.0f, gravity * deltaTime, 0.0f);
+		if (planetA.mesh.position.y < -10.0f) {
 			velocity = glm::vec3(0.0f, 9.81f, 0.0f);
 		}
-		// sphereMesh.position += velocity * deltaTime;
+		// planetA.mesh.position += velocity * deltaTime;
 
-		camera.UpdateMatrix(60.0f, 0.1f, 500.0f, windowWidth, windowHeight);
+		camera.UpdateMatrix(60.0f, 0.1f, 1000.0f, windowWidth, windowHeight);
 
 
 
 		light.Draw(lightShader, camera);
-		planetA.Draw(planetShader, camera);
+		planetA.Draw(planetShader, camera, windowWidth, windowHeight, light.position);
 
 
 		glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
@@ -238,16 +238,16 @@ void imgui_processing(Mesh& sphere, Mesh& light, PlanetGenerator& planetA) {
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
-
+	
 	ImGui::Begin("Debug Window");
 	if (ImGui::CollapsingHeader("Transforms")) {
 		ImGui::Text("Sphere");
-		ImGui::SliderFloat3("Sphere Position", &sphere.position.x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("Sphere Position", &sphere.position.x, -100.0f, 100.0f);
 		ImGui::SliderFloat3("Sphere Scale", &sphere.scale.x, -2.0f, 2.0f);
 		ImGui::SliderFloat3("Sphere Rotation", &sphere.rotation.x, 0.0f, 360.0f);
 		ImGui::Text("Light");
-		ImGui::SliderFloat3("Light Position", &light.position.x, -100.0f, 100.0f);
-		ImGui::SliderFloat3("Light Scale", &light.scale.x, -2.0f, 2.0f);
+		ImGui::SliderFloat3("Light Position", &light.position.x, -1000.0f, 1000.0f);
+		ImGui::SliderFloat3("Light Scale", &light.scale.x, -20.0f, 20.0f);
 	}
 	if (ImGui::CollapsingHeader("Planet Generation")) {
 
@@ -269,6 +269,7 @@ void imgui_processing(Mesh& sphere, Mesh& light, PlanetGenerator& planetA) {
 		}
 		
 	}
+
 }
 
 

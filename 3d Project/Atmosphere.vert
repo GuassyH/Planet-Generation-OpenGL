@@ -3,17 +3,16 @@
 layout (location = 0) in vec2 inPos;
 layout (location = 1) in vec2 inTexCoords;
 
-out vec2 texCoords;
+out vec2 fragCoord;
 
-out vec3 atmosphereCentre;
 
-uniform mat4 model;
-uniform mat4 position;
+
+
+
 
 void main(){
+	
+
+	fragCoord = inTexCoords;
 	gl_Position = vec4(inPos.x, inPos.y, 0.0f, 1.0f);
-	
-	atmosphereCentre = vec3(model * position);
-	
-	texCoords = inTexCoords;
 }

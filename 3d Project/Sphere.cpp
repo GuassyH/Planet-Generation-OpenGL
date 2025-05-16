@@ -4,11 +4,12 @@
 
 
 
-void runComputeSphere(unsigned int& resolution, float& radius, float& tile, unsigned int numVerts, std::vector<Vertex>& verts) {
+void Sphere::runComputeSphere(unsigned int& resolution, float& radius, float& tile, unsigned int& numVerts, std::vector<Vertex>& verts) {
     int success;
     char InfoLog[512];
 
-    std::vector<ComputeVertex> computeVert(numVerts);
+    Sphere::computeVerts = std::vector<ComputeVertex>(numVerts);
+
 
     GLuint workGroupSize = 1;
     for (unsigned int i = 12; i > 0; i--) {
@@ -26,7 +27,7 @@ void runComputeSphere(unsigned int& resolution, float& radius, float& tile, unsi
         "#version 460 core \n layout(local_size_x = " + std::to_string(layoutGroupX) + ", local_size_y = " + std::to_string(layoutGroupY) + ", local_size_z = " + std::to_string(layoutGroupZ) + ") in; ";
 
 
-    std::string computeShaderString = layoutStr + get_file_contents("ComputeSphere.txt");
+    std::string computeShaderString = layoutStr + get_file_contents("ComputeSphere.comp");
     const char* computeShaderSource = computeShaderString.c_str();
 
     GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER);
@@ -55,7 +56,7 @@ void runComputeSphere(unsigned int& resolution, float& radius, float& tile, unsi
     GLsizeiptr vertBuffSize = sizeof(ComputeVertex) * numVerts;
     glGenBuffers(1, &vertBuff);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, vertBuff);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, vertBuffSize, computeVert.data(), GL_DYNAMIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, vertBuffSize, computeVerts.data(), GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertBuff); // THIS IS ESSENTIAL
 
     glUniform1i(glGetUniformLocation(computeProgram, "resolution"), resolution);
@@ -101,12 +102,12 @@ void runComputeSphere(unsigned int& resolution, float& radius, float& tile, unsi
     }
     else {
         for (unsigned int i = 0; i < numVerts; ++i) {
-            computeVert[i] = ptr[i]; // copy from GPU buffer to CPU vector
+            computeVerts[i] = ptr[i]; // copy from GPU buffer to CPU vector
 
-            verts[i].position = glm::vec3(computeVert[i].position);
-            verts[i].normal = glm::vec3(computeVert[i].normal);
-            verts[i].color = glm::vec3(computeVert[i].color);
-            verts[i].texUV = glm::vec2(computeVert[i].texUV);
+            verts[i].position = glm::vec3(computeVerts[i].position);
+            verts[i].normal = glm::vec3(computeVerts[i].normal);
+            verts[i].color = glm::vec3(computeVerts[i].color);
+            verts[i].texUV = glm::vec2(computeVerts[i].texUV);
         }
     }
 
@@ -154,12 +155,9 @@ Sphere::Sphere(unsigned int resolution, float radius, float tile) {
     std::vector<Vertex> verts(numVerts);
 
     runComputeSphere(resolution, radius, tile, numVerts, verts);
-
-
-
-
-
     vertices = verts;
+
+
 
 
     GLuint vertexOffset = 0;

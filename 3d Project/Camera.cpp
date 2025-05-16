@@ -19,6 +19,7 @@ void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane, int win
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
 
+
 	// set the width to the windowWidth etc, helps for setting glm::perspective if window size changes
 	width = windowWidth;
 	height = windowHeight;
@@ -26,6 +27,14 @@ void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane, int win
 	// view = lookAt a vec3, projection = perspective I give it
 	view = glm::lookAt(Position, Position + Orientation, Up);
 	projection = glm::perspective(glm::radians(FOVdeg), (float)width / (float)height, nearPlane, farPlane);
+
+	Forward = glm::normalize(Orientation);
+	Right = glm::cross(Forward, glm::vec3(0.0f, 1.0f, 0.0f));
+	Up = glm::cross(Right, Forward);
+
+	Camera::FOVdeg = FOVdeg;
+	Camera::farPlane = farPlane;
+	Camera::nearPlane = nearPlane;
 
 	cameraMatrix = projection * view;
 }

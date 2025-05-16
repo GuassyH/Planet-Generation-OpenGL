@@ -223,6 +223,15 @@
     <None Include="Atmosphere.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="ComputePlanet.comp">
+      <Filter>Resource Files\Shaders\ComputeShaders</Filter>
+    </None>
+    <None Include="ComputeSphere.comp">
+      <Filter>Resource Files\Shaders\ComputeShaders</Filter>
+    </None>
+    <None Include="ComputeNormals.comp">
+      <Filter>Resource Files\Shaders\ComputeShaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="C:\Users\haagl\Downloads\brick.png">
@@ -240,16 +249,5 @@
     <Image Include="C:\Users\haagl\Downloads\box.png">
       <Filter>Resource Files\Textures</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ComputeSphere.txt">
-      <Filter>Resource Files\Shaders\ComputeShaders</Filter>
-    </Text>
-    <Text Include="ComputeNormals.txt">
-      <Filter>Resource Files\Shaders\ComputeShaders</Filter>
-    </Text>
-    <Text Include="ComputePlanet.txt">
-      <Filter>Resource Files\Shaders\ComputeShaders</Filter>
-    </Text>
   </ItemGroup>
 </Project>

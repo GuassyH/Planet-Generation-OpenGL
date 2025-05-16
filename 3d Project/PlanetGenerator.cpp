@@ -10,6 +10,7 @@ PlanetGenerator::PlanetGenerator(Sphere& sphere01, Mesh& mesh01) : sphere(sphere
 	sphere01.~Sphere();
 
 	atmosphere = Atmosphere();
+	atmosphere.atmosphereRadius = radius + 10.0f;
 
 	PlanetGenerator::UpdateMesh();
 }
@@ -23,6 +24,7 @@ PlanetGenerator::PlanetGenerator(unsigned int resolution, float radius, float ti
 	PlanetGenerator::planetTex = mesh01.textures;
 
 	atmosphere = Atmosphere();
+	atmosphere.atmosphereRadius = radius + 10.0f;
 
 	PlanetGenerator::UpdateMesh();
 }
@@ -36,7 +38,7 @@ GLuint workGroupSize;
 
 
 
-void createComputeShader(unsigned int numVerts, float resolution, const char* ShaderName) {
+void createComputeShader(unsigned int& numVerts, int& resolution, const char* ShaderName) {
 
 	int success;
 	char InfoLog[512];
@@ -85,7 +87,7 @@ void createComputeShader(unsigned int numVerts, float resolution, const char* Sh
 }
 
 
-void runComputeShader(unsigned int numVerts, float resolution, GLuint& vertBuff, GLsizeiptr& vertBuffSize, std::vector<Vertex>& vertices, std::vector<ComputeVertex>& computeVerts) {
+void runComputeShader(unsigned int& numVerts, int& resolution, GLuint& vertBuff, GLsizeiptr& vertBuffSize, std::vector<Vertex>& vertices, std::vector<ComputeVertex>& computeVerts) {
 
 
 	glDispatchCompute((resolution + 1) / workGroupSize, (resolution + 1) / workGroupSize, 6);
@@ -119,6 +121,7 @@ void runComputeShader(unsigned int numVerts, float resolution, GLuint& vertBuff,
 	glDeleteProgram(computeProgram);
 }
 
+
 void PlanetGenerator::UpdateMesh() {
 
 	// Create new sphere if needed
@@ -126,6 +129,7 @@ void PlanetGenerator::UpdateMesh() {
 		// sphere.~Sphere();
 		Sphere sphere(resolution, 1.0f, tile);
 		PlanetGenerator::sphere = sphere;
+
 	}
 
 
@@ -147,29 +151,17 @@ void PlanetGenerator::UpdateMesh() {
 	}
 
 
+	computeVerts = sphere.computeVerts;
 	vertices = sphere.vertices;
 	indices = sphere.indices;
 
 
 	unsigned int numVerts = vertices.size();
 
-	// Only do the loop if the numverts has changed i could just read back, its faster
-	if (baseComputeVerts.size() != numVerts) {
-		std::vector<ComputeVertex>(numVerts).swap(baseComputeVerts);
-		for (unsigned int i = 0; i < numVerts; i++)
-		{
-			baseComputeVerts[i].position = glm::vec4(vertices[i].position, 0.0f);
-			baseComputeVerts[i].normal = glm::vec4(vertices[i].normal, 0.0f);
-			baseComputeVerts[i].color = glm::vec4(vertices[i].color, 0.0f);
-			baseComputeVerts[i].texUV = glm::vec4(vertices[i].texUV, 0.0f, 0.0f);
-		}
-		std::cout << "Creating new Comp Verts" << std::endl;
-	}
-	
-	std::vector<ComputeVertex> computeVerts = baseComputeVerts;
+
 
 	// RUN VERTEX HEIGHT CALCULATION
-	createComputeShader(numVerts, resolution, "ComputePlanet.txt");
+	createComputeShader(numVerts, resolution, "ComputePlanet.comp");
 
 	// assign buffer
 	GLuint vertBuff;
@@ -214,7 +206,7 @@ void PlanetGenerator::UpdateMesh() {
 
 
 	// RUN NORMAL CALCULATION
-	createComputeShader(numVerts, resolution, "ComputeNormals.txt");
+	createComputeShader(numVerts, resolution, "ComputeNormals.comp");
 
 	vertBuff;
 	vertBuffSize = sizeof(ComputeVertex) * numVerts;
@@ -238,18 +230,20 @@ void PlanetGenerator::UpdateMesh() {
 	glDeleteBuffers(1, &craterBuff);
 
 
-	std::vector<ComputeVertex>().swap(computeVerts);
-
 
 	mesh.UpdateMesh(vertices, indices, planetTex);
+
+	std::vector<ComputeVertex>().swap(computeVerts);
+	std::vector<Vertex>().swap(vertices);
+	std::vector<GLuint>().swap(indices);
 }
 
 
 
 
-void PlanetGenerator::Draw(Shader& shader, Camera& camera) {
+void PlanetGenerator::Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos) {
 	mesh.Draw(shader, camera);
 	
 	
-	atmosphere.Update(mesh.position);
+	atmosphere.Update(mesh.position, camera, width, height, radius, lightPos);
 }

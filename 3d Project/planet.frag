@@ -58,7 +58,7 @@ vec4 directionalLight(){
 	vec3 viewDirection = normalize(camPos - crntPos);
 	vec3 reflectionDirection = reflect(-lightDirection, normal);
 	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
-	float specular = specAmount * specularLight;
+	float specular = specAmount * specularLight * 0.2f;
 
 	return vec4(vertColor, 1.0f) * lightColor * (diffuse + ambient) + specular;
 

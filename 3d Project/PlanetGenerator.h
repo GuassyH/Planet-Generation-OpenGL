@@ -34,7 +34,7 @@ public:
 	Atmosphere atmosphere;
 
 	std::vector<Vertex> vertices;
-	std::vector<ComputeVertex> baseComputeVerts;
+	std::vector<ComputeVertex> computeVerts;
 
 	std::vector<GLuint> indices;
 	std::vector<Texture> planetTex;
@@ -43,7 +43,7 @@ public:
 	PlanetGenerator(Sphere& sphere, Mesh& mesh);
 	PlanetGenerator(unsigned int resolution, float radius, float tile, Mesh& mesh01);
 	void UpdateMesh();
-	void Draw(Shader& shader, Camera& camera);
+	void Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos);
 };
 
 #endif

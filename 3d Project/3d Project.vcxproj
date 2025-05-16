@@ -191,6 +191,9 @@
   <ItemGroup>
     <None Include="Atmosphere.frag" />
     <None Include="Atmosphere.vert" />
+    <None Include="ComputeNormals.comp" />
+    <None Include="ComputePlanet.comp" />
+    <None Include="ComputeSphere.comp" />
     <None Include="default.frag" />
     <None Include="default.vert" />
     <None Include="light.frag" />
@@ -204,11 +207,6 @@
     <Image Include="C:\Users\haagl\Downloads\planks.png" />
     <Image Include="C:\Users\haagl\Downloads\planksSpec.png" />
     <Image Include="gravel.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ComputeNormals.txt" />
-    <Text Include="ComputePlanet.txt" />
-    <Text Include="ComputeSphere.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
