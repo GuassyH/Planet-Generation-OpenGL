@@ -80,7 +80,7 @@ void Mesh::Draw(Shader& shader, Camera& camera)
 		textures[i].Bind();
 	}
 	// Take care of the camera Matrix
-	glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+	glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.transform.position.x, camera.transform.position.y, camera.transform.position.z);
 	camera.Matrix(shader, "camMatrix");
 
 	// Initialize matrices
@@ -88,15 +88,15 @@ void Mesh::Draw(Shader& shader, Camera& camera)
 	glm::mat4 sca = glm::mat4(1.0f);
 	glm::mat4 rotMatrix = glm::mat4(1.0f);
 
-	glm::quat rotX = glm::angleAxis(glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::quat rotY = glm::angleAxis(glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::quat rotZ = glm::angleAxis(glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::quat rotX = glm::angleAxis(glm::radians(transform.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::quat rotY = glm::angleAxis(glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::quat rotZ = glm::angleAxis(glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 	glm::quat rot = rotX * rotY * rotZ;
 	rotMatrix = glm::mat4_cast(rot);
 
 	// Transform the matrices to their correct form
-	trans = glm::translate(glm::mat4(1.0f), position);
-	sca = glm::scale(sca, scale);
+	trans = glm::translate(glm::mat4(1.0f), transform.position);
+	sca = glm::scale(sca, transform.scale);
 
 	// Push the matrices to the vertex shader
 	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "translation"), 1, GL_FALSE, glm::value_ptr(trans));

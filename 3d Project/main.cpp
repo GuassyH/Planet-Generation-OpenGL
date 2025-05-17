@@ -2,7 +2,6 @@
 #include "Cube.h"
 #include "Sphere.h"
 #include "Model.h"
-#include "GameObject.h"
 #include "PlanetGenerator.h"
 
 #include "imgui.h"
@@ -18,7 +17,7 @@ float refreshRate;
 int monitorWidth;
 int monitorHeight;
 
-void imgui_processing(Mesh& sphere, Mesh& light, PlanetGenerator& planetA);
+void imgui_processing(Mesh& light);
 void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
 void process_inputs(GLFWwindow* window, GLFWmonitor* monitor, Camera& camera);
 
@@ -115,26 +114,20 @@ int main(void) {
 	Mesh light(i_lightSphere.vertices, i_lightSphere.indices, lightTex);
 
 	// Create Sphere mesh
-	Mesh sphereMesh;
-	sphereMesh.textures = planetTex;
-	PlanetGenerator planetA(50, 50.0f, 1.0f, sphereMesh);
+	Mesh planetAMesh;
+	planetAMesh.textures = planetTex;
+	PlanetGenerator planetA(50, 50.0f, 1.0f, planetAMesh);
+	planetA.name = "Planet A";
 
-	
+
 
 
 	//		-	MOVING AND ASSIGNING MODELS		-		//
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
 
-	planetA.mesh.position = glm::vec3(0.0f, 0.0f, -500.0f);
-	light.position = glm::vec3(0.0f, 0.0f, 0.0f);
-	light.scale = glm::vec3(100.0f);
-
-	lightShader.Activate();
-	glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	planetShader.Activate();
-	glUniform4f(glGetUniformLocation(planetShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(planetShader.ID, "lightPos"), light.position.x, light.position.y, light.position.z);
-
+	planetA.transform.position = glm::vec3(0.0f, 0.0f, -500.0f);
+	light.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	light.transform.scale = glm::vec3(100.0f);
 
 
 
@@ -145,7 +138,6 @@ int main(void) {
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 460");
-
 
 
 
@@ -173,7 +165,7 @@ int main(void) {
 		glEnable(GL_DEPTH_TEST);
 		glViewport(0, 0, windowWidth, windowHeight);
 
-		imgui_processing(sphereMesh, light, planetA);
+		imgui_processing(light);
 
 
 		crntTime = static_cast<float>(glfwGetTime());
@@ -185,15 +177,14 @@ int main(void) {
 
 
 		light.Draw(lightShader, camera);
-		planetA.Draw(planetShader, camera, windowWidth, windowHeight, light.position, lightColor);
+		planetA.Draw(planetShader, camera, light.transform.position, lightColor);
 		planetA.CameraReOrient(camera, deltaTime);
-
 
 		lightShader.Activate();
 		glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 		planetShader.Activate();
 		glUniform4f(glGetUniformLocation(planetShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-		glUniform3f(glGetUniformLocation(planetShader.ID, "lightPos"), light.position.x, light.position.y, light.position.z);
+		glUniform3f(glGetUniformLocation(planetShader.ID, "lightPos"), light.transform.position.x, light.transform.position.y, light.transform.position.z);
 
 
 		ImGui::End();
@@ -224,41 +215,17 @@ int main(void) {
 
 
 
-void imgui_processing(Mesh& sphere, Mesh& light, PlanetGenerator& planetA) {
+void imgui_processing(Mesh& light) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
 	
 	ImGui::Begin("Debug Window");
-	if (ImGui::CollapsingHeader("Transforms")) {
-		ImGui::Text("Sphere");
-		ImGui::SliderFloat3("Sphere Position", &sphere.position.x, -1000.0f, 0.0f);
-		ImGui::SliderFloat3("Sphere Scale", &sphere.scale.x, -2.0f, 2.0f);
-		ImGui::SliderFloat3("Sphere Rotation", &sphere.rotation.x, 0.0f, 360.0f);
+	if (ImGui::CollapsingHeader("Main Light")) {
 		ImGui::Text("Light");
-		ImGui::SliderFloat3("Light Position", &light.position.x, -2000.0f, 1000.0f);
-		ImGui::SliderFloat3("Light Scale", &light.scale.x, -20.0f, 20.0f);
-	}
-	if (ImGui::CollapsingHeader("Planet Generation")) {
-
-		bool res = ImGui::SliderInt("Resolution", &planetA.resolution, 2, 512);
-		bool rad = ImGui::SliderFloat("Radius", &planetA.radius, 0, 100);
-		bool tile = ImGui::SliderFloat("Tile", &planetA.tile, 0, 20.0f);
-		ImGui::Text("Crater");
-		bool nC = ImGui::SliderInt("Num Craters", &planetA.numCraters, 0, 100);
-		bool cW = ImGui::SliderFloat("craterWidth", &planetA.craterWidth, -1.0f, 10.0f);
-		bool cS = ImGui::SliderFloat("craterSteepness", &planetA.craterSteepness, -1.0f, 10.0f);
-		bool cD = ImGui::SliderFloat("craterDepth", &planetA.craterDepth, -1.0f, 0.0f);
-		bool rW = ImGui::SliderFloat("rimWidth", &planetA.rimWidth, -1.0f, 10.0f);
-		bool rS = ImGui::SliderFloat("rimSteepness", &planetA.rimSteepness, 0.0f, 50.0f);
-		bool rE = ImGui::SliderFloat("smoothingK", &planetA.smoothingK, 0.001f, 1.0f);
-
-
-		if (res || rad || tile || cW || cS || cD || rW || rS || rE || nC) {
-			planetA.UpdateMesh();
-		}
-		
+		ImGui::SliderFloat3("Light Position", &light.transform.position.x, -2000.0f, 1000.0f);
+		ImGui::SliderFloat3("Light Scale", &light.transform.scale.x, -20.0f, 20.0f);
 	}
 
 }

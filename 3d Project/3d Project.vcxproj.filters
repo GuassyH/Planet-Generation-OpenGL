@@ -111,6 +111,9 @@
     <ClCompile Include="Atmosphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="dependencies\lib\glfw3.lib" />
@@ -148,9 +151,6 @@
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Header Files\Meshes</Filter>
-    </ClInclude>
-    <ClInclude Include="GameObject.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="PlanetGenerator.h">
       <Filter>Header Files</Filter>
@@ -195,6 +195,9 @@
       <Filter>Header Files\Packages</Filter>
     </ClInclude>
     <ClInclude Include="Atmosphere.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

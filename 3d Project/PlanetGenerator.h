@@ -8,6 +8,8 @@
 
 class PlanetGenerator {
 public:
+	const char* name = "Planet";
+
 	float frequency = 10.0f;
 	float amplitude = 10.0f;
 
@@ -26,6 +28,8 @@ public:
 
 	float maxHeight = 0.0f;
 
+	Transform transform;
+
 	Mesh& mesh;
 	Sphere sphere;
 
@@ -43,8 +47,9 @@ public:
 	PlanetGenerator(Sphere& sphere, Mesh& mesh);
 	PlanetGenerator(unsigned int resolution, float radius, float tile, Mesh& mesh01);
 	void UpdateMesh();
-	void Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos, glm::vec4 lightColor);
+	void Draw(Shader& shader, Camera& camera, glm::vec3& lightPos, glm::vec4 lightColor);
 	void CameraReOrient(Camera& camera, float& delta);
+	void imgui_processing();
 };
 
 #endif

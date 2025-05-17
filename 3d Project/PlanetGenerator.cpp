@@ -2,12 +2,12 @@
 
 PlanetGenerator::PlanetGenerator(Sphere& sphere01, Mesh& mesh01) : sphere(sphere01), mesh(mesh01), atmosphere(atmosphere)
 {
-	PlanetGenerator::mesh = mesh01;
+	// PlanetGenerator::mesh = mesh01;
 	PlanetGenerator::resolution = sphere01.resolution;
 	PlanetGenerator::radius = sphere01.radius;
 	PlanetGenerator::tile = tile;
 	PlanetGenerator::planetTex = mesh01.textures;
-	sphere01.~Sphere();
+	// sphere01.~Sphere();
 
 	atmosphere = Atmosphere();
 
@@ -16,7 +16,7 @@ PlanetGenerator::PlanetGenerator(Sphere& sphere01, Mesh& mesh01) : sphere(sphere
 
 PlanetGenerator::PlanetGenerator(unsigned int resolution, float radius, float tile, Mesh& mesh01) : sphere(sphere), mesh(mesh01), atmosphere(atmosphere)
 {
-	PlanetGenerator::mesh = mesh01;
+	// PlanetGenerator::mesh = mesh01;
 	PlanetGenerator::resolution = resolution;
 	PlanetGenerator::radius = radius;
 	PlanetGenerator::tile = tile;
@@ -122,12 +122,18 @@ void runComputeShader(unsigned int& numVerts, int& resolution, GLuint& vertBuff,
 void PlanetGenerator::UpdateMesh() {
 
 	// Create new sphere if needed
+	unsigned int numVerts = ((resolution + 1) * (resolution + 1)) * 6;
+
 	if (sphere.resolution != PlanetGenerator::resolution || sphere.tile != tile) {
 		// sphere.~Sphere();
 		Sphere sphere(resolution, 1.0f, tile);
 		PlanetGenerator::sphere = sphere;
 
 	}
+
+	computeVerts = sphere.computeVerts;
+	vertices = sphere.vertices;
+	indices = sphere.indices;
 
 
 	int craterPosSize = craterPositions.size();
@@ -146,16 +152,6 @@ void PlanetGenerator::UpdateMesh() {
 			}
 		}
 	}
-
-
-	computeVerts = sphere.computeVerts;
-	vertices = sphere.vertices;
-	indices = sphere.indices;
-
-
-	unsigned int numVerts = vertices.size();
-
-
 
 	// RUN VERTEX HEIGHT CALCULATION
 	createComputeShader(numVerts, resolution, "ComputePlanet.comp");
@@ -235,17 +231,66 @@ void PlanetGenerator::UpdateMesh() {
 	std::vector<GLuint>().swap(indices);
 }
 
+
+
 void PlanetGenerator::CameraReOrient(Camera& camera, float& delta) {
 	glm::vec3 newUp;
-	newUp = camera.Position - mesh.position;
+	newUp = normalize(camera.transform.position - transform.position);
 
-	if (glm::distance(mesh.position, camera.Position) < radius * atmosphere.atmosphereScale) { camera.WorldUp = camera.WorldUp - (-newUp * delta * 0.25f); }
-	else { camera.WorldUp = glm::vec3(0.0f, 1.0f, 0.0f) - (camera.WorldUp * delta * 0.25f); }
+	if (glm::distance(transform.position, camera.transform.position) < radius * atmosphere.atmosphereScale) { 
+		camera.WorldUp = camera.LocalUp - (-newUp * delta * 10.0f);	
+		camera.transform.parent = &transform;
+	}
+	else { 
+		camera.WorldUp = camera.LocalUp - (-glm::vec3(0.0f, 1.0f, 0.0f) * delta * 10.0f); 
+		camera.transform.parent = nullptr;
+	}
+
 }
 
 
-void PlanetGenerator::Draw(Shader& shader, Camera& camera, int& width, int& height, glm::vec3& lightPos, glm::vec4 lightColor) {
+
+void PlanetGenerator::Draw(Shader& shader, Camera& camera, glm::vec3& lightPos, glm::vec4 lightColor) {
+	mesh.transform.position = transform.position;
+
 	mesh.Draw(shader, camera);
-	
-	atmosphere.Update(mesh.position, camera, width, height, radius, lightPos);
+	imgui_processing();
+
+	atmosphere.Update(transform.position, camera, camera.width, camera.height, radius, lightPos);
+}
+
+
+
+
+void PlanetGenerator::imgui_processing() {
+
+
+	if (ImGui::CollapsingHeader(name)) {
+		if (ImGui::CollapsingHeader("Mesh")) {
+
+			ImGui::SliderFloat3("Sphere Position", &transform.position.x, -500.0f, 500.0f);
+			ImGui::SliderFloat3("Sphere Scale", &transform.scale.x, -2.0f, 2.0f);
+			ImGui::SliderFloat3("Sphere Rotation", &transform.rotation.x, 0.0f, 360.0f);
+		}
+		if (ImGui::CollapsingHeader("Params")) {
+			bool res = ImGui::SliderInt("Resolution", &resolution, 2, 512);
+			bool rad = ImGui::SliderFloat("Radius", &radius, 0, 100);
+			bool t = ImGui::SliderFloat("Tile", &tile, 0, 20.0f);
+			ImGui::Text("Crater");
+			bool nC = ImGui::SliderInt("Num Craters", &numCraters, 0, 100);
+			bool cW = ImGui::SliderFloat("craterWidth", &craterWidth, -1.0f, 10.0f);
+			bool cS = ImGui::SliderFloat("craterSteepness", &craterSteepness, -1.0f, 10.0f);
+			bool cD = ImGui::SliderFloat("craterDepth", &craterDepth, -1.0f, 0.0f);
+			bool rW = ImGui::SliderFloat("rimWidth", &rimWidth, -1.0f, 10.0f);
+			bool rS = ImGui::SliderFloat("rimSteepness", &rimSteepness, 0.0f, 50.0f);
+			bool rE = ImGui::SliderFloat("smoothingK", &smoothingK, 0.001f, 1.0f);
+			if (res || rad || t || cW || cS || cD || rW || rS || rE || nC) {
+				UpdateMesh();
+			}
+		}
+
+		
+		atmosphere.imgui_updates();
+
+	}
 }

@@ -103,9 +103,6 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 
 	atmosphereShader.Activate();
 
-	imgui_updates();
-
-
 
 	// ================ //
 
@@ -121,7 +118,7 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 
 	glUniform1f(glGetUniformLocation(atmosphereShader.ID, "FOVdeg"), camera.FOVdeg);
 
-	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camPos"), camera.transform.position.x, camera.transform.position.y, camera.transform.position.z);
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camUp"), camera.LocalUp.x, camera.LocalUp.y, camera.LocalUp.z);
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camForward"), camera.LocalForward.x, camera.LocalForward.y, camera.LocalForward.z);
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "camRight"), camera.LocalRight.x, camera.LocalRight.y, camera.LocalRight.z);
@@ -157,6 +154,8 @@ void Atmosphere::imgui_updates() {
 
 	if (ImGui::CollapsingHeader("Atmosphere")) {
 		ImGui::SliderFloat("Atmosphere Scale", &atmosphereScale, 1.0f, 5.0f);
+		ImGui::Spacing();
+		ImGui::Spacing();
 		ImGui::Spacing();
 		ImGui::SliderFloat("Density Falloff", &densityFalloff, -2.0f, 20.0f);
 		ImGui::SliderInt("numInScatteringPoints", &inScatteringPoints, 1, 20);

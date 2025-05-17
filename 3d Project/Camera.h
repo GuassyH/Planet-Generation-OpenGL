@@ -12,15 +12,20 @@
 #include <glm/gtx/vector_angle.hpp>
 
 #include "shaderClass.h"
+#include "Transform.h"
 
 class Camera {
 	public:
-		glm::vec3 Position = glm::vec3(0.0f, 0.0f, 0.0f);
+		
+		Transform transform;
+
 		glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
 		glm::vec3 LocalUp = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 LocalForward = glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 LocalRight = glm::vec3(1.0f, 0.0f, 0.0f);
 		glm::mat4 cameraMatrix = glm::mat4(1.0f);
+
+		glm::vec3 Right = glm::vec3(1.0f, 0.0f, 0.0f);
 
 		glm::vec3 WorldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
