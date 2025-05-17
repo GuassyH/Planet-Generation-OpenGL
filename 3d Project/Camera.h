@@ -13,10 +13,10 @@
 
 #include "shaderClass.h"
 #include "Transform.h"
+#include "imgui.h"
 
 class Camera {
 	public:
-		
 		Transform transform;
 
 		glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -45,7 +45,7 @@ class Camera {
 
 		void UpdateMatrix(float FOVdeg, float nearPlane, float farPlane, int windowWidth, int windowHeight);
 		void Matrix(Shader& shader, const char* uniform);
-		void Inputs(GLFWwindow* window);
+		void Inputs(GLFWwindow* window, float& delta);
 };
 
 

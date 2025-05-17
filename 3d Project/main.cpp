@@ -19,7 +19,7 @@ int monitorHeight;
 
 void imgui_processing(Mesh& light);
 void frame_buffer_size_callback(GLFWwindow* window, int width, int height);
-void process_inputs(GLFWwindow* window, GLFWmonitor* monitor, Camera& camera);
+void process_inputs(GLFWwindow* window, GLFWmonitor* monitor, Camera& camera, float& delta);
 
 std::vector<Mesh> meshes;
 
@@ -31,7 +31,7 @@ std::vector<Mesh> meshes;
 
 int main(void) {
 
-#pragma region Initialising GLFW
+	#pragma region Initialising GLFW
 
 
 	if (!glfwInit()) {
@@ -59,21 +59,6 @@ int main(void) {
 	gladLoadGL();
 	glViewport(0, 0, windowWidth, windowHeight);
 
-	
-	//		-	CREATING Verts	-		//
-
-
-	// Texture data
-	Texture textures[]
-	{
-		Texture("planks.png", "diffuse", 0),
-		Texture("planksSpec.png", "specular", 1)
-	};
-	Texture planetTextures[]
-	{
-		Texture("gravel.png", "diffuse", 0),
-		Texture("planksSpec.png", "specular", 1)
-	};
 
 
 	glfwSetFramebufferSizeCallback(window, frame_buffer_size_callback);
@@ -91,7 +76,19 @@ int main(void) {
 	std::cout << monitorWidth << " x " << monitorHeight << std::endl;
 
 
-#pragma endregion
+	#pragma endregion
+
+	// Texture data
+	Texture textures[]
+	{
+		Texture("planks.png", "diffuse", 0),
+		Texture("planksSpec.png", "specular", 1)
+	};
+	Texture planetTextures[]
+	{
+		Texture("gravel.png", "diffuse", 0),
+		Texture("planksSpec.png", "specular", 1)
+	};
 
 
 
@@ -116,7 +113,7 @@ int main(void) {
 	// Create Sphere mesh
 	Mesh planetAMesh;
 	planetAMesh.textures = planetTex;
-	PlanetGenerator planetA(50, 50.0f, 1.0f, planetAMesh);
+	PlanetGenerator planetA(128, 50.0f, 1.0f, planetAMesh);
 	planetA.name = "Planet A";
 
 
@@ -126,7 +123,7 @@ int main(void) {
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
 
 	planetA.transform.position = glm::vec3(0.0f, 0.0f, -500.0f);
-	light.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+	light.transform.position = glm::vec3(0.0f, 0.0f, 500.0f);
 	light.transform.scale = glm::vec3(100.0f);
 
 
@@ -156,13 +153,14 @@ int main(void) {
 
 	while (!glfwWindowShouldClose(window)) {
 
-		if (!io.WantCaptureMouse){	process_inputs(window, monitor, camera);	}
-
+		
+		if (!io.WantCaptureMouse){	process_inputs(window, monitor, camera, deltaTime);	}
 		glBindFramebuffer(GL_FRAMEBUFFER, planetA.atmosphere.FBO);
-
+		
 		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
+		glDepthMask(GL_TRUE);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0, 0, windowWidth, windowHeight);
 
 		imgui_processing(light);
@@ -173,18 +171,22 @@ int main(void) {
 		prevTime = crntTime;
 
 
-		camera.UpdateMatrix(75.0f, 0.1f, 1000.0f, windowWidth, windowHeight);
+		camera.UpdateMatrix(75.0f, 0.1f, 2000.0f, windowWidth, windowHeight);
 
 
 		light.Draw(lightShader, camera);
 		planetA.Draw(planetShader, camera, light.transform.position, lightColor);
 		planetA.CameraReOrient(camera, deltaTime);
 
+
+
 		lightShader.Activate();
 		glUniform4f(glGetUniformLocation(lightShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 		planetShader.Activate();
 		glUniform4f(glGetUniformLocation(planetShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 		glUniform3f(glGetUniformLocation(planetShader.ID, "lightPos"), light.transform.position.x, light.transform.position.y, light.transform.position.z);
+		glUniform3f(glGetUniformLocation(planetShader.ID, "planetPos"), planetA.transform.position.x, planetA.transform.position.y, planetA.transform.position.z);
+
 
 
 		ImGui::End();
@@ -206,6 +208,7 @@ int main(void) {
 	lightShader.Delete();
 	planetShader.Delete();
 	planetA.atmosphere.atmosphereShader.Delete();
+	glDeleteProgram(planetA.computePlanetProgram);
 
 	glfwDestroyWindow(window);
 
@@ -219,9 +222,9 @@ void imgui_processing(Mesh& light) {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
 	
 	ImGui::Begin("Debug Window");
+	ImGui::SetWindowPos(ImVec2(0.0f, 0.0f));
 	if (ImGui::CollapsingHeader("Main Light")) {
 		ImGui::Text("Light");
 		ImGui::SliderFloat3("Light Position", &light.transform.position.x, -2000.0f, 1000.0f);
@@ -241,9 +244,9 @@ void frame_buffer_size_callback(GLFWwindow* window, int width, int height) {
 
 
 
-void process_inputs(GLFWwindow* window, GLFWmonitor* monitor, Camera& camera) {
+void process_inputs(GLFWwindow* window, GLFWmonitor* monitor, Camera& camera, float& delta) {
 	
-	camera.Inputs(window);
+	camera.Inputs(window, delta);
 	
 	// For setting window size
 	if (glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS) {

@@ -8,6 +8,7 @@ PlanetGenerator::PlanetGenerator(Sphere& sphere01, Mesh& mesh01) : sphere(sphere
 	PlanetGenerator::tile = tile;
 	PlanetGenerator::planetTex = mesh01.textures;
 	// sphere01.~Sphere();
+	oceanRadius = radius / 2;
 
 	atmosphere = Atmosphere();
 
@@ -21,6 +22,7 @@ PlanetGenerator::PlanetGenerator(unsigned int resolution, float radius, float ti
 	PlanetGenerator::radius = radius;
 	PlanetGenerator::tile = tile;
 	PlanetGenerator::planetTex = mesh01.textures;
+	oceanRadius = radius / 2;
 
 	atmosphere = Atmosphere();
 
@@ -153,6 +155,8 @@ void PlanetGenerator::UpdateMesh() {
 		}
 	}
 
+
+
 	// RUN VERTEX HEIGHT CALCULATION
 	createComputeShader(numVerts, resolution, "ComputePlanet.comp");
 
@@ -177,6 +181,7 @@ void PlanetGenerator::UpdateMesh() {
 	// Basics
 	glUniform1i(glGetUniformLocation(computeProgram, "numVerts"), numVerts);
 	glUniform1f(glGetUniformLocation(computeProgram, "radius"), radius);
+	glUniform1f(glGetUniformLocation(computeProgram, "oceanRadius"), oceanRadius);
 	glUniform1i(glGetUniformLocation(computeProgram, "resolution"), resolution);
 
 	// Crater
@@ -188,7 +193,14 @@ void PlanetGenerator::UpdateMesh() {
 	glUniform1f(glGetUniformLocation(computeProgram, "rimSteepness"), rimSteepness);
 	glUniform1f(glGetUniformLocation(computeProgram, "rimWidth"), rimWidth);
 	glUniform1f(glGetUniformLocation(computeProgram, "smoothingK"), smoothingK);
+	// Noise
+	glUniform3f(glGetUniformLocation(computeProgram, "noiseCentre"), noiseCentre.x, noiseCentre.y, noiseCentre.z);
+	glUniform1f(glGetUniformLocation(computeProgram, "noiseStrength"), noiseStrength);
+	glUniform1f(glGetUniformLocation(computeProgram, "noiseHeightShift"), noiseHeightShift); 
+	glUniform1f(glGetUniformLocation(computeProgram, "noiseBaseFrequency"), noiseBaseFrequency);
+	glUniform1i(glGetUniformLocation(computeProgram, "noiseLayers"), noiseLayers); 
 
+	
 
 	runComputeShader(numVerts, resolution, vertBuff, vertBuffSize, vertices, computeVerts);
 
@@ -275,16 +287,24 @@ void PlanetGenerator::imgui_processing() {
 		if (ImGui::CollapsingHeader("Params")) {
 			bool res = ImGui::SliderInt("Resolution", &resolution, 2, 512);
 			bool rad = ImGui::SliderFloat("Radius", &radius, 0, 100);
+			bool oRad = ImGui::SliderFloat("oceanRadius", &oceanRadius, 0, 100);
 			bool t = ImGui::SliderFloat("Tile", &tile, 0, 20.0f);
 			ImGui::Text("Crater");
-			bool nC = ImGui::SliderInt("Num Craters", &numCraters, 0, 100);
-			bool cW = ImGui::SliderFloat("craterWidth", &craterWidth, -1.0f, 10.0f);
-			bool cS = ImGui::SliderFloat("craterSteepness", &craterSteepness, -1.0f, 10.0f);
-			bool cD = ImGui::SliderFloat("craterDepth", &craterDepth, -1.0f, 0.0f);
-			bool rW = ImGui::SliderFloat("rimWidth", &rimWidth, -1.0f, 10.0f);
-			bool rS = ImGui::SliderFloat("rimSteepness", &rimSteepness, 0.0f, 50.0f);
-			bool rE = ImGui::SliderFloat("smoothingK", &smoothingK, 0.001f, 1.0f);
-			if (res || rad || t || cW || cS || cD || rW || rS || rE || nC) {
+			bool numC = ImGui::SliderInt("Num Craters", &numCraters, 0, 100);
+			bool craterW = ImGui::SliderFloat("craterWidth", &craterWidth, -1.0f, 10.0f);
+			bool craterS = ImGui::SliderFloat("craterSteepness", &craterSteepness, -1.0f, 10.0f);
+			bool craterD = ImGui::SliderFloat("craterDepth", &craterDepth, -1.0f, 0.0f);
+			bool rimW = ImGui::SliderFloat("rimWidth", &rimWidth, -1.0f, 10.0f);
+			bool rimS = ImGui::SliderFloat("rimSteepness", &rimSteepness, 0.0f, 50.0f);
+			bool rimE = ImGui::SliderFloat("smoothingK", &smoothingK, 0.001f, 1.0f);
+			ImGui::Text("Noise");
+			bool noiseC = ImGui::SliderFloat3("noiseCentre", &noiseCentre.x, -3.0f, 3.0f);
+			bool noiseS = ImGui::SliderFloat("noiseStrength", &noiseStrength, 0.0f, 10.0f);
+			bool noiseH = ImGui::SliderFloat("noiseHeightShift", &noiseHeightShift, -10.0f, 10.0f);
+			bool noiseF = ImGui::SliderFloat("noiseBaseFrequency", &noiseBaseFrequency, 0.0f, 0.5f);
+			bool noiseL = ImGui::SliderInt("noiseLayers", &noiseLayers, 1, 6);
+
+			if (res || rad || oRad || t || numC || craterW || craterS || craterD || rimW || rimS || rimE || noiseC || noiseS || noiseF || noiseL || noiseH) {
 				UpdateMesh();
 			}
 		}

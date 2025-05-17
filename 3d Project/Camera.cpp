@@ -14,10 +14,10 @@ void Camera::Matrix(Shader& shader, const char* uniform) {
 }
 
 void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane, int windowWidth, int windowHeight) {
+
 	// Initialise the matrices
 	glm::mat4 view = glm::mat4(1.0f);
 	glm::mat4 projection = glm::mat4(1.0f);
-
 
 	// set the width to the windowWidth etc, helps for setting glm::perspective if window size changes
 	Camera::width = windowWidth;
@@ -26,8 +26,6 @@ void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane, int win
 	// view = lookAt a vec3, projection = perspective I give it
 	view = glm::lookAt(transform.position, transform.position + Orientation, WorldUp);
 	projection = glm::perspective(glm::radians(FOVdeg), (float)width / (float)height, nearPlane, farPlane);
-
-
 
 	LocalForward = glm::normalize(Orientation);
 	Right = glm::normalize(glm::cross(LocalForward, WorldUp));
@@ -44,16 +42,16 @@ void Camera::UpdateMatrix(float FOVdeg, float nearPlane, float farPlane, int win
 
 
 
-void Camera::Inputs(GLFWwindow* window) {
+void Camera::Inputs(GLFWwindow* window, float& delta) {
 
 	// X & Z
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) { transform.position += speed * LocalForward; }
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) { transform.position += speed * -LocalRight; }
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) { transform.position += speed * -LocalForward; }
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { transform.position += speed * LocalRight; }
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) { transform.position += speed * LocalForward * delta * 200.0f; }
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) { transform.position += speed * -LocalRight * delta * 200.0f; }
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) { transform.position += speed * -LocalForward * delta * 200.0f; }
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) { transform.position += speed * LocalRight * delta * 200.0f; }
 	// Y
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) { transform.position += speed * LocalUp; }
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) { transform.position += speed * -LocalUp; }
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) { transform.position += speed * LocalUp * delta * 200.0f; }
+	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) { transform.position += speed * -LocalUp * delta * 200.0f; }
 	// Speed control
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) { speed = 0.5f; }
 	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) { speed = 0.05f; }
@@ -66,6 +64,7 @@ void Camera::Inputs(GLFWwindow* window) {
 	// Mouse movement
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		ImGui::SetMouseCursor(ImGuiMouseCursor_None);
 
 		if (firstClick) {
 			glfwSetCursorPos(window, (width / 2), (height / 2));
@@ -76,8 +75,8 @@ void Camera::Inputs(GLFWwindow* window) {
 		double mouseY;
 		glfwGetCursorPos(window, &mouseX, &mouseY);
 
-		float rotX = sensitivity * (float)(mouseY - (height / 2)) / height;
-		float rotY = sensitivity * (float)(mouseX - (width / 2)) / width;
+		float rotX = sensitivity * ((float)(mouseY - (height / 2)) / (float)height) * delta * 200.0f;
+		float rotY = sensitivity * ((float)(mouseX - (width / 2)) / (float)width) * delta * 200.0f;
 
 		// Check if the angle to the new rotation is NOT less than 5deg to being 90deg
 		// Need to make orientation be the forward of the body, not of the camera
@@ -92,6 +91,7 @@ void Camera::Inputs(GLFWwindow* window) {
 	}
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		ImGui::SetMouseCursor(ImGuiMouseCursor_Arrow);
 		firstClick = true;
 	}
 }

@@ -10,7 +10,7 @@
 class Atmosphere {
 
 	public:
-		const char* AtmosphereName;
+		const char* name;
 
 		Atmosphere();
 		Shader atmosphereShader;
@@ -20,7 +20,7 @@ class Atmosphere {
 
 		unsigned int FBO;
 		unsigned int frameBufferTexture;
-		unsigned int RBO;
+		unsigned int depthTexture;
 
 		int width;
 		int height;
@@ -35,8 +35,8 @@ class Atmosphere {
 
 		// Colo
 		glm::vec3 wavelengths = glm::vec3(700.0f, 530.0f, 440.0f);
-		float scatteringCoefficient = 400.0f;
-		float scatteringStrength = 0.5f;
+		float scatteringCoefficient = 380.0f;
+		float scatteringStrength = 0.75f;
 
 		glm::mat4 matrix;
 

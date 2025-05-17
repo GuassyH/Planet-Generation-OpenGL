@@ -9,7 +9,7 @@ uniform vec3 sunPos;
 out vec4 fragColor;
 
 uniform sampler2D screenTexture;
-// uniform sampler2D depthTexture;
+uniform sampler2D depthTexture;
 uniform vec2 screenResolution;
 
 uniform vec3 camUp;
@@ -121,6 +121,12 @@ vec3 calculateLight(vec3 rayOrigin, vec3 rayDir, float dstThrough, vec3 original
 
 
 
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // Back to NDC
+    return (2.0 * camNearPlane * camFarPlane) / (camFarPlane + camNearPlane - z * (camFarPlane - camNearPlane));
+}
+
 
 
 void main(){
@@ -143,7 +149,7 @@ void main(){
 
 	float depth;
 	depth = raySphere(atmosphereCentre, planetRadius, rayOrigin, rayDir).x - dstTo;
-	
+	// depth = texture(depthTexture, fragCoord).r - dstTo;
 	
 	// DEPTH THING NEEDS TO BE ADDED
 	if(depth > 0.0){
@@ -159,4 +165,7 @@ void main(){
 		fragColor += vec4(light, 1.0);
 	}
 
+	// float depthT = texture(depthTexture, fragCoord).r;
+	// float linearDepth = LinearizeDepth(depthT);
+	// fragColor = vec4(vec3(linearDepth / camFarPlane), 1.0);
 } 

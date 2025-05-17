@@ -52,17 +52,17 @@ void main(){
     if(face == 5){   rotationMatrix = rotationMat5;  }
     if(face == 6){   rotationMatrix = rotationMat6;  }
 
-    vec3 centreOffset = vec3(-radius / 2.0f, -radius / 2.0f, radius / 2.0f);
+    vec3 centreOffset = vec3(-radius / 2.0, -radius / 2.0, radius / 2.0);
 
     vec3 tempPosRaw = vec3(float(idx * radius), float(idy * radius), 0) / float(resolution)+ centreOffset;
-    vec4 rotatedPos = rotationMatrix * vec4(tempPosRaw, 1.0f);
+    vec4 rotatedPos = rotationMatrix * vec4(tempPosRaw, 1.0);
     vec3 rotatedPos3D = vec3(rotatedPos);
     vec3 rotatedPosNormal = normalize(rotatedPos3D);
 
-    vec2 texCoord = vec2(tempPosRaw * radius * tile) - (vec2(1.0f) / (2.0f * radius));
+    vec2 texCoord = vec2(tempPosRaw * radius * tile) - (vec2(1.0) / (2.0 * radius));
 
-    vertices[currentVert].position = vec4(rotatedPosNormal * radius, 1.0f);
-    vertices[currentVert].normal = vec4(rotatedPosNormal, 1.0f);
-    vertices[currentVert].color = vec4(1.0f);
-    vertices[currentVert].texUV = vec4(texCoord, 1.0f, 1.0f);
+    vertices[currentVert].position = vec4(rotatedPosNormal * radius, 1.0);
+    vertices[currentVert].normal = vec4(rotatedPosNormal, 1.0);
+    vertices[currentVert].color = vec4(1.0);
+    vertices[currentVert].texUV = vec4(texCoord, 1.0, 1.0);
 }

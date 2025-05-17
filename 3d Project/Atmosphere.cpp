@@ -20,9 +20,7 @@ void Atmosphere::GenerateBuffers() {
 	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "screenTexture"), 0);
 
 
-
 	glfwGetWindowSize(glfwGetCurrentContext(), &width, &height);
-
 
 
 	unsigned int rectVAO;
@@ -54,13 +52,16 @@ void Atmosphere::GenerateBuffers() {
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, frameBufferTexture, 0);
 	Atmosphere::frameBufferTexture = frameBufferTexture;
 
-
-	unsigned int RBO;
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-	Atmosphere::RBO = RBO;
+	unsigned int depthTexture;
+	glGenTextures(1, &depthTexture);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+	Atmosphere::depthTexture = depthTexture;
 
 
 	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -70,13 +71,12 @@ void Atmosphere::GenerateBuffers() {
 
 }
 
-Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), AtmosphereName(AtmosphereName), rectVAO(rectVAO), rectVBO(rectVBO), FBO(FBO), RBO(RBO), frameBufferTexture(frameBufferTexture) {
+Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), name(name), rectVAO(rectVAO), rectVBO(rectVBO), FBO(FBO), depthTexture(depthTexture), frameBufferTexture(frameBufferTexture) {
 	// Create new Atmosphere Shader
 
 	Atmosphere::atmosphereShader = Shader("Atmosphere.vert", "Atmosphere.frag");
 
-	AtmosphereName = "Planet Atmosphere";
-	std::cout << AtmosphereName << std::endl;
+	name = "Planet Atmosphere";
 
 	GenerateBuffers();
 
@@ -86,30 +86,35 @@ Atmosphere::Atmosphere() : atmosphereShader(atmosphereShader), AtmosphereName(At
 
 void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& height, float& planetRadius, glm::vec3& lightPos) {
 	
+
+
 	if (Atmosphere::width != width || Atmosphere::height != height) {
 		GenerateBuffers();
 	}
 
 
 	// Set all variables
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, depthTexture);
+	glUniform1i(glGetUniformLocation(atmosphereShader.ID, "depthTexture"), 1);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 
 	// Activate shader
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	atmosphereShader.Activate();
 
 
 	// ================ //
 
+	#pragma region Assign Variables
 
 	float scatterR = glm::pow(scatteringCoefficient / wavelengths.x, 4) * scatteringStrength;
 	float scatterG = glm::pow(scatteringCoefficient / wavelengths.y, 4) * scatteringStrength;
 	float scatterB = glm::pow(scatteringCoefficient / wavelengths.z, 4) * scatteringStrength;
+
 
 
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "atmosphereCentre"), position.x, position.y, position.z);
@@ -136,6 +141,7 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 	// Color
 	glUniform3f(glGetUniformLocation(atmosphereShader.ID, "scatteringCoefficients"), scatterR, scatterG, scatterB);
 
+	#pragma endregion
 
 	// ================ //
 
@@ -143,10 +149,19 @@ void Atmosphere::Update(glm::vec3 position, Camera& camera, int& width, int& hei
 
 	camera.Matrix(atmosphereShader, "camMatrix");
 	
-	glBindVertexArray(rectVAO);
+
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);  // <--- Prevent writing to depth buffer
+
+	glBindVertexArray(rectVAO);
 	glBindTexture(GL_TEXTURE_2D, frameBufferTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	// Re-enable depth writes and depth test after you're done
+	glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+
+
 }
 
 

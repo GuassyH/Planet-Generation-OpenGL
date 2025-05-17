@@ -5,6 +5,7 @@
 #include "Sphere.h"
 #include <glm/gtc/random.hpp>
 #include "Atmosphere.h"
+#include "Noise.h"
 
 class PlanetGenerator {
 public:
@@ -14,7 +15,8 @@ public:
 	float amplitude = 10.0f;
 
 	int resolution = 50;
-	float radius = 2.0f;
+	float radius = 2.0f; 
+	float oceanRadius = 1.0f;
 	float tile = 1.0f;
 	// Crater
 	int numCraters = 0;
@@ -26,7 +28,12 @@ public:
 	float rimSteepness = 10.0f;
 	float smoothingK = 0.1f;
 
-	float maxHeight = 0.0f;
+	// Noise
+	glm::vec3 noiseCentre;
+	float noiseStrength = 3.00f;
+	float noiseHeightShift = 0.0f;
+	float noiseBaseFrequency = 0.09f;
+	int noiseLayers = 6;
 
 	Transform transform;
 
