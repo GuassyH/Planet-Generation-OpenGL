@@ -3,7 +3,7 @@
 out vec4 fragColor;
 
 in vec3 vertColor;
-in vec3 Normal;
+in vec3 normal;
 in vec3 crntPos;
 
 in vec2 texCoord;
@@ -29,7 +29,6 @@ vec4 pointLight(){
 	float intensity = 1.0 / (a * dist * dist + b * dist + 1.0);
 	
 	// diffuse lighting
-	vec3 normal = normalize(Normal);
 	vec3 lightDirection = normalize(lightVec);
 	float diffuse = max(dot(normal, lightDirection), 0.0);
 
@@ -50,7 +49,6 @@ vec4 directionalLight(){
 	
 	// diffuse lighting
 	lightDirection = normalize(lightDirection);
-	vec3 normal = normalize(Normal);
 	float diffuse = max(dot(normal, lightDirection), 0.0);
 
 	// specular lighting
@@ -72,7 +70,6 @@ vec4 spotLight(){
 
 	// diffuse lighting
 	vec3 lightDirection = normalize(lightPos - crntPos);
-	vec3 normal = normalize(Normal);
 	float diffuse = max(dot(normal, lightDirection), 0.0);
 
 	// specular lighting
@@ -90,6 +87,20 @@ vec4 spotLight(){
 }
 
 void main(){
+
+	// Get steepness
+	float steepness = dot(normal, normalize(crntPos - planetPos));
+	steepness = max(steepness, 0.0);
+
+	vec4 steepnessCol;
+	if(steepness < 0.97){
+		steepnessCol = vec4(0.7);
+	}
+	else{
+		steepnessCol = vec4(1.0);
+	}
+
 	// output final color
-	fragColor =  directionalLight();
+	fragColor = steepnessCol * directionalLight();
+
 };

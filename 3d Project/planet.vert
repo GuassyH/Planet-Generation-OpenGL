@@ -10,7 +10,7 @@ layout (location = 3) in vec2 aTex;
 
 // Output color for frag
 out vec3 crntPos;
-out vec3 Normal;
+out vec3 normal;
 out vec3 vertColor;
 out vec2 texCoord;
 
@@ -32,7 +32,7 @@ void main(){
 	vertColor = aColor;
 
 	// Rotate normal
-	Normal = vec3(rotation * vec4(aNormal, 1.0f));
+	normal = normalize(vec3(rotation * vec4(aNormal, 1.0)));
 
 	texCoord = mat2(0.0, -1.0f, 1.0, 0.0) * aTex;
 	

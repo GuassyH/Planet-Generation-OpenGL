@@ -100,6 +100,7 @@ int main(void) {
 
 	Shader lightShader("light.vert", "light.frag");
 	Shader planetShader("planet.vert", "planet.frag");
+	Shader planetBShader("planet.vert", "planet.frag");
 
 
 	std::vector <Texture> planetTex(planetTextures, planetTextures + sizeof(planetTextures) / sizeof(Texture));
@@ -117,15 +118,13 @@ int main(void) {
 	planetA.name = "Planet A";
 
 
-
-
 	//		-	MOVING AND ASSIGNING MODELS		-		//
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 0.8f, 1.0f);
 
 	planetA.transform.position = glm::vec3(0.0f, 0.0f, -500.0f);
 	light.transform.position = glm::vec3(0.0f, 0.0f, 500.0f);
 	light.transform.scale = glm::vec3(100.0f);
-
+	
 
 
 	// IMGUI Stuff
@@ -177,7 +176,6 @@ int main(void) {
 		light.Draw(lightShader, camera);
 		planetA.Draw(planetShader, camera, light.transform.position, lightColor);
 		planetA.CameraReOrient(camera, deltaTime);
-
 
 
 		lightShader.Activate();

@@ -156,7 +156,7 @@ void main() {
 		strength *= 0.5;
 	}
 
-	noiseMul = (noiseMul + noiseHeightShift) - (noiseRemap / 2);
+	noiseMul = (noiseMul + noiseHeightShift) - (noiseRemap / 2) - 1;
 
 	vert.position += vert.normal * max(noiseMul, 0.0);
 

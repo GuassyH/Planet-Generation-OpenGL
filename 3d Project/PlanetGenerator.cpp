@@ -263,7 +263,7 @@ void PlanetGenerator::CameraReOrient(Camera& camera, float& delta) {
 
 
 void PlanetGenerator::Draw(Shader& shader, Camera& camera, glm::vec3& lightPos, glm::vec4 lightColor) {
-	mesh.transform.position = transform.position;
+	mesh.transform = transform;
 
 	mesh.Draw(shader, camera);
 	imgui_processing();
